@@ -30,6 +30,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.hardware.SensorEventListener;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.Metadata;
@@ -39,6 +43,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
@@ -50,6 +55,7 @@ import android.widget.Toast;
 import com.android.gallery3d.R;
 import com.android.gallery3d.common.ApiHelper;
 import com.android.gallery3d.common.BlobCache;
+import com.android.gallery3d.settings.GallerySettings;
 import com.android.gallery3d.util.CacheManager;
 import com.android.gallery3d.util.GalleryUtils;
 import org.codeaurora.gallery3d.ext.IContrllerOverlayExt;
@@ -79,7 +85,8 @@ public class MoviePlayer implements
         MediaPlayer.OnPreparedListener,
         MediaPlayer.OnSeekCompleteListener,
         MediaPlayer.OnVideoSizeChangedListener,
-        MediaPlayer.OnBufferingUpdateListener {
+        MediaPlayer.OnBufferingUpdateListener,
+	SensorEventListener {
     @SuppressWarnings("unused")
     private static final String TAG = "MoviePlayer";
     private static final boolean LOG = false;
@@ -133,6 +140,7 @@ public class MoviePlayer implements
     private boolean mShowing;
 
     private Virtualizer mVirtualizer;
+    private SensorManager mSensorManager;
 
     private MovieActivity mActivityContext;//for dialog and toast context
     private MoviePlayerExtension mPlayerExt = new MoviePlayerExtension();
@@ -523,6 +531,12 @@ public class MoviePlayer implements
         mAudioBecomingNoisyReceiver.unregister();
         mContext.unregisterReceiver(mReceiver);
         mServerTimeoutExt.clearTimeoutDialog();
+
+        // Unregister the sensor listener
+        if (mSensorManager != null) {
+            mSensorManager.unregisterListener(this,
+                    mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY));
+        }
     }
 
     // This updates the time bar display (if necessary). It is called every
@@ -585,6 +599,17 @@ public class MoviePlayer implements
         if (enableFasten) {
             mVideoView.setDuration(duration);
         }
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+        boolean mSmartControl = (boolean) sp.getBoolean(GallerySettings.SMART_CONTROL, false);
+        if (mSmartControl) {
+            // Register the sensor listener
+            mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
+            mSensorManager.registerListener(this,
+                    mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY),
+                    SensorManager.SENSOR_DELAY_UI);
+        }
+
         setProgress();
     }
 
@@ -794,6 +819,18 @@ public class MoviePlayer implements
             return;
         }
         doStartVideo(false, 0, 0);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        int currentProx = (int) event.values[0];
+        if (currentProx == 0) {
+            onPlayPause();
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
 
     // Below are key events passed from MovieActivity.
