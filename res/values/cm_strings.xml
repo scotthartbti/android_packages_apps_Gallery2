@@ -13,8 +13,9 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="filtershow_undo_toast">Deshacer</string>
-    <string name="filtershow_redo_toast">Rehacer</string>
+    <!--  Text for undo toast message. Only modify if the string is too long to be displayed -->
+    <string name="filtershow_undo_toast">@string/filtershow_undo</string>
+    <!--  Text for redo toast message. Only modify if the string is too long to be displayed -->
+    <string name="filtershow_redo_toast">@string/filtershow_redo</string>
 </resources>
