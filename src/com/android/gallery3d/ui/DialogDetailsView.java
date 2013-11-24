@@ -52,7 +52,7 @@ public class DialogDetailsView implements DetailsViewContainer {
     private DetailsAdapter mAdapter;
     private MediaDetails mDetails;
     private final DetailsSource mSource;
-    private int mIndex;
+    private int mIndex = 0;
     private Dialog mDialog;
     private CloseListener mListener;
 
