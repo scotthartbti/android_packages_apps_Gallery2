@@ -50,7 +50,6 @@ import android.preference.PreferenceScreen;
 import android.provider.ContactsContract;
 import android.provider.Settings.System;
 import android.provider.Telephony;
-import android.telephony.MSimTelephonyManager;
 import android.telephony.TelephonyManager;
 import android.text.method.DigitsKeyListener;
 import android.util.Log;
